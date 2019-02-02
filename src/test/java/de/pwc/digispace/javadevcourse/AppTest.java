@@ -1,5 +1,8 @@
 package de.pwc.digispace.javadevcourse;
 
+import de.pwc.digispace.javadevcourse.backend.BeverageRepository;
+import de.pwc.digispace.javadevcourse.backend.server.GraphQLEndpoint;
+import graphql.GraphQL;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -31,8 +34,8 @@ public class AppTest
     /**
      * Rigourous Test :-)
      */
-    public void testApp()
+    public void test_create_Beverage_schema()
     {
-        assertTrue( true );
+        GraphQLEndpoint testGraphQLEndpoint = new GraphQLEndpoint();
     }
 }

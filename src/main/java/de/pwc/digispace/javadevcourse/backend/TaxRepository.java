@@ -35,9 +35,10 @@ public class TaxRepository {
 			String queryString = "INSERT INTO tax(taxId, taxRate, taxTotal) VALUES(?,?,?)";
 			connection = getConnection();
 			preparedStatement = connection.prepareStatement(queryString);
-			preparedStatement.setObject(1, tax.getTaxId());
-			preparedStatement.setInt(1, tax.getTaxRate());
-			preparedStatement.setObject(1, tax.getTaxTotal());
+			int attributeCounter = 1;
+			preparedStatement.setObject(attributeCounter++, tax.getTaxId());
+			preparedStatement.setInt(attributeCounter++, tax.getTaxRate());
+			preparedStatement.setObject(attributeCounter++, tax.getTaxTotal());
 			int i = preparedStatement.executeUpdate();
 			logger.info("{} tax added successfully", i);
 		} catch (SQLException e) {
@@ -60,12 +61,12 @@ public class TaxRepository {
 	
 	public void update(Tax tax) {
 		try {
-			String queryString = "UPDATE tax SET taxId=?, taxRate=?, taxTotal=? WHERE taxId=?";
+			String queryString = "UPDATE tax SET taxRate=?, taxTotal=? WHERE taxId=?";
 			connection = getConnection();
 			preparedStatement = connection.prepareStatement(queryString);
-			preparedStatement.setObject(1, tax.getTaxId());
-			preparedStatement.setInt(1, tax.getTaxRate());
-			preparedStatement.setObject(1, tax.getTaxTotal());
+			int attributeCounter = 1;
+			preparedStatement.setInt(attributeCounter++, tax.getTaxRate());
+			preparedStatement.setObject(attributeCounter++, tax.getTaxTotal());
 			int i = preparedStatement.executeUpdate();
 			logger.info("{} beverage(s) UPDATED!", i);
 		} catch(SQLException e) {
@@ -115,19 +116,16 @@ public class TaxRepository {
 	}
 	
 	public Tax findById(UUID taxId) {
-		Tax tax = new Tax(taxId);
+		Tax tax = null;
 		try {
 			String queryString = "SELECT FROM drinks where name=?";
 			connection = getConnection();
 			preparedStatement = connection.prepareStatement(queryString);
 			preparedStatement.setObject(1, taxId);
 			resultSet = preparedStatement.executeQuery();
-			
-			tax.setTaxRate(resultSet.getInt("taxRate"));
-			tax.setTaxTotal(resultSet.getBigDecimal("taxTotal"));
-		
-			logger.info("FOUND:\n{}", tax);
-			
+			tax = new Tax(taxId,
+				resultSet.getInt("taxRate"),
+				resultSet.getBigDecimal("taxTotal") );			
 		} catch (SQLException e) {
 			e.printStackTrace();
 		} finally {
@@ -158,12 +156,9 @@ public class TaxRepository {
 			preparedStatement = connection.prepareStatement(queryString);
 			resultSet = preparedStatement.executeQuery();
 			while (resultSet.next()) {
-				Tax tax = new Tax((UUID) resultSet.getObject("taxId"));
-				tax.setTaxRate(resultSet.getInt("taxRate"));
-				tax.setTaxTotal(resultSet.getBigDecimal("taxTotal"));
-				taxes.add(tax);
-
-				logger.info(tax.toString());
+				taxes.add( new Tax( (UUID) resultSet.getObject("taxId"),
+					resultSet.getInt("taxRate"),
+					resultSet.getBigDecimal("taxTotal") ));	
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();

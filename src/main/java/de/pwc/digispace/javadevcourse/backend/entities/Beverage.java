@@ -28,10 +28,10 @@ public class Beverage extends Product {
 
 	// Constructor for graphql mutation createBeverage/createFood
 	public Beverage(String name, BigDecimal price, int tax, String description,
-					BeverageType beverageType, Boolean containsAlcohol) {
-		super(name, price, tax, description);
-		this.beverageType = beverageType;
-		this.containsAlcohol = containsAlcohol;
+					Boolean deprecated, BeverageType beverageType,
+					Boolean containsAlcohol) {
+		this(name, price, tax, description, null, null, deprecated,
+			beverageType, containsAlcohol);
 	}
 
 	public BeverageType getBeverageType() {

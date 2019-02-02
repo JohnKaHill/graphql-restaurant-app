@@ -1,12 +1,20 @@
 type Query {
 	# Find all drinks
-	findAllDrinks: [Beverage]!
+	findAllOrders: [Order!]!
+	# Find beverage by name
+	order(orderId: String!): Order!
+	# Find all drinks
+	findAllDrinks: [Beverage!]!
 	# Find beverage by name
 	beverage(name: String!): Beverage!
 }
 
 # root mutation type that needs to extended
 type Mutation {
+	createOrder(input: OrderInput!): Order
+	updateOrder(orderId: String!, input: OrderInput!): Order
+	deleteOrder(orderId: String!): Boolean
+
 	createBeverage(input: ProductInput!, beverageType: BeverageType!, containsAlcohol: Boolean!): Beverage
 	updateBeverage(input: ProductInput): Beverage
 	deleteBeverage(name: String!): Boolean
@@ -19,9 +27,36 @@ type Beverage {
 	description: String!
 	dateCreated: String!
 	dateEdited: String
-	deprecated: Boolean
+	deprecated: Boolean!
 	containsAlcohol: Boolean!
 	beverageType: BeverageType!
+}
+
+type Order {
+	orderId: String!
+	dateCreated: String!
+	dateEdited: String
+	tableNumber: Int!
+	datePaid: String
+	paymentMethod: PaymentMethod
+	totalAmount: Float
+}
+
+type Tax {
+	taxId: String!
+	taxRate: Int!
+	taxAmonut: Float!
+}
+
+enum PaymentMethod {
+		CASH
+		DEBIT
+		VISA
+		MASTERCARD
+		BITCOIN
+		CHECK
+		APPLEPAY
+		GOOGLEPAY
 }
 
 enum BeverageType {
@@ -38,4 +73,8 @@ input ProductInput{
 	price: Float
 	tax: Int
 	description: String
+}
+
+input OrderInput{
+	tableNumber: Int!
 }

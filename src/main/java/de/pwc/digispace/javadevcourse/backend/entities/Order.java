@@ -18,184 +18,125 @@ import java.util.UUID;
 
 public class Order {
 	
-	// Attributes relevant for an active order
 	private UUID orderId;
-	
 	private LocalDateTime dateCreated;
-	
 	private LocalDateTime dateEdited;
-	
 	private int tableNumber;
-	
 	// true=active -> order, false=inactive -> invoice
-	private boolean isOpen = true;
-			
-	private List<Food> meals;
-	
-	private List<Beverage> drinks;
-	
-	// Attributes relevant for a paid (immutable) order, null for active order
+	private boolean isOpen;
 	private LocalDateTime datePaid;
-	
+	private List<Food> meals;
+	private List<Beverage> drinks;
+	// Attributes relevant for a paid (immutable) order, null for active order
 	private PaymentMethod paymentMethod;
-	
 	private List<Tax> taxes;
-	
 	private BigDecimal totalAmount;
 		
-	public Order (UUID orderId) {
-		super();
+	public Order(UUID orderId, LocalDateTime dateCreated, LocalDateTime dateEdited,
+					int tableNumber, boolean isOpen, LocalDateTime datePaid,
+					List<Food> meals, List<Beverage> drinks, PaymentMethod paymentMethod, 
+					List<Tax> taxes, BigDecimal totalAmount) {
 		this.orderId = orderId;
-	}
-	
-	public Order(int tableNumber, List<Food> meals, List<Beverage> drinks) {
-		super();
-		this.orderId = UUID.randomUUID();
-		this.dateCreated = LocalDateTime.now();
+		this.dateEdited = dateEdited;
+		this.dateCreated = dateCreated;
 		this.tableNumber = tableNumber;
-		this.meals = meals;
-		this.drinks = drinks;
-		setTotalAmount();
-	}
-	
-	public Order(UUID orderId, int tableNumber, List<Beverage> drinks,
-			List<Food> meals, PaymentMethod paymentMethod, boolean isOpen) {
-		super();
-		this.orderId = orderId;
-		this.tableNumber = tableNumber;
-		if (!isOpen) {
-			this.datePaid = LocalDateTime.now();
-		}
 		this.isOpen = isOpen;
+		this.datePaid = datePaid;
 		this.meals = meals;
 		this.drinks = drinks;
 		this.paymentMethod = paymentMethod;
-		setTotalAmount();
-		if (this.dateCreated != null) {
-			this.dateEdited = LocalDateTime.now();
-		} else {
-			this.dateCreated = LocalDateTime.now();
-		}
-	}
+		this.taxes = taxes;
+		this.totalAmount = setTotalAmount(meals, drinks);
 
-	public LocalDateTime getDateCreated() {
-		return dateCreated;
 	}
 	
-	public void setDateCreated(LocalDateTime dateCreated) {
-		this.dateCreated = dateCreated;
+	public Order(UUID orderId, int tableNumber, boolean isOpen, List<Food> meals, 
+					List<Beverage> drinks, PaymentMethod paymentMethod, 
+					List<Tax> taxes) {
+		this(orderId , null, null, tableNumber, isOpen, null, meals, drinks,
+				paymentMethod, taxes, null);
 	}
-
-	public int getTableNumber() {
-		return tableNumber;
-	}
-
-	public void setTableNumber(int tableNumber) {
-		this.tableNumber = tableNumber;
-	}
-
-	public boolean isOpen() {
-		return isOpen;
-	}
-
-	public void setOpen(boolean isOpen) {
-		this.isOpen = isOpen;
-	}
-
+	
 	public UUID getOrderId() {
 		return orderId;
 	}
 
-	public List<Food> getMeals() {
-		return meals;
-	}
-
-	public void setMeals(List<Food> meals) {
-		this.meals = meals;
-	}
-
-	public List<Beverage> getDrinks() {
-		return drinks;
-	}
-
-	public void setDrinks(List<Beverage> drinks) {
-		this.drinks = drinks;
-	}
-
-	public LocalDateTime getDatePaid() {
-		return datePaid;
-	}
-
-	public void setDatePaid(LocalDateTime datePaid) {
-		this.datePaid = datePaid;
-	}
-
-	public PaymentMethod getPaymentMethod() {
-		return paymentMethod;
-	}
-
-	public void setPaymentMethod(PaymentMethod paymentMethodType) {
-		this.paymentMethod = paymentMethodType;
-	}
-
-	public void setOrderId(UUID orderId) {
-		this.orderId = orderId;
+	public LocalDateTime getDateCreated() {
+		return dateCreated;
 	}
 
 	public LocalDateTime getDateEdited() {
 		return dateEdited;
 	}
 
-	public void setDateEdited(LocalDateTime dateEdited) {
-		this.dateEdited = dateEdited;
+	public int getTableNumber() {
+		return tableNumber;
 	}
 
-	public float getTotalAmount() {
-		return totalAmount.floatValue();
+	public boolean getIsOpen() {
+		return isOpen;
 	}
 
-	public void setTotalAmount(float totalAmount) {
-		this.totalAmount = BigDecimal.valueOf(totalAmount);
+	public List<Food> getMeals() {
+		return meals;
 	}
-	
-	public void setTotalAmount() {
+
+	public List<Beverage> getDrinks() {
+		return drinks;
+	}
+
+	public LocalDateTime getDatePaid() {
+		return datePaid;
+	}
+
+	public PaymentMethod getPaymentMethod() {
+		return paymentMethod;
+	}
+
+	public BigDecimal getTotalAmount() {
+		return totalAmount;
+	}
+
+	public BigDecimal setTotalAmount( List<Food> meals, List<Beverage> drinks ) {
 		float totalTemp = 0;
-		for (Beverage beverage : this.drinks) {
-			totalTemp += beverage.getPrice().floatValue();
+		if( drinks != null )
+		{
+			for (Beverage beverage : this.drinks) {
+				totalTemp += beverage.getPrice().floatValue();
+			}
 		}
-		for (Food food : this.meals) {
-			totalTemp += food.getPrice().floatValue();
+		if( meals != null )
+		{
+			for (Food food : this.meals) {
+				totalTemp += food.getPrice().floatValue();
+			}
 		}
-		this.totalAmount = BigDecimal.valueOf(totalTemp);
+		
+		return BigDecimal.valueOf(totalTemp);
 	}
 
 	public List<Tax> getTaxes() {
 		return taxes;
 	}
 
-	public void setTaxes() {
-		Map<Integer, BigDecimal> map = new HashMap<>();
-		
-		for (Beverage beverage : this.drinks) {
-			if (map.containsKey(beverage.getTax())) {
-				map.put(beverage.getTax(), map.get(beverage.getTax()).add(beverage.getPrice()));
-			} else {
-				map.put(beverage.getTax(), map.get(beverage.getTax()));
-			}
-			
+	public List<Tax> setTaxes( List<Food> meals, List<Beverage> drinks ) {
+		Map<Integer, BigDecimal> taxMap = new HashMap<>();
+		for (Beverage beverage : drinks) {
+			BigDecimal tempTax = taxMap.containsKey(beverage.getTax()) ? 
+				taxMap.get(beverage.getTax()).add(beverage.getPrice()) : taxMap.get(beverage.getTax());
+			taxMap.put(beverage.getTax(), tempTax);
 		}
-		
-		for (Food food : this.meals) {
-			if (map.containsKey(food.getTax())) {
-				map.put(food.getTax(), map.get(food.getTax()).add(food.getPrice()));
-			} else {
-				map.put(food.getTax(), map.get(food.getTax()));
-			}
+				
+		for (Food food : meals) {
+			BigDecimal tempTax = taxMap.containsKey(food.getTax()) ? 
+				taxMap.get(food.getTax()).add(food.getPrice()) : taxMap.get(food.getTax());
+			taxMap.put(food.getTax(), tempTax);
 		}
-		
-		for (Map.Entry<Integer, BigDecimal> entry : map.entrySet()) {
-			this.taxes.add(new Tax(entry.getKey(), entry.getValue()));
+		List<Tax> taxes = new ArrayList<>();
+		for (Map.Entry<Integer, BigDecimal> entry : taxMap.entrySet()) {
+			taxes.add(new Tax(entry.getKey(), entry.getValue()));
 		}
+		return taxes;
 	}
 
 	@Override

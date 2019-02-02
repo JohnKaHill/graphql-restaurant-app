@@ -39,9 +39,9 @@ public class BeverageRepository implements Dao<Beverage, String>{
 			preparedStatement.setString(attributeCounter++, beverage.getDescription());
 			preparedStatement.setBigDecimal(attributeCounter++, beverage.getPrice());
 			preparedStatement.setInt(attributeCounter++, beverage.getTax());
-			preparedStatement.setObject(attributeCounter++, beverage.getDateCreated());
-			preparedStatement.setObject(attributeCounter++, beverage.getDateEdited());
-			preparedStatement.setBoolean(attributeCounter++, beverage.isDeprecated());
+			preparedStatement.setObject(attributeCounter++, LocalDateTime.now());
+			preparedStatement.setObject(attributeCounter++, null);
+			preparedStatement.setBoolean(attributeCounter++, false);
 			preparedStatement.setBoolean(attributeCounter++, beverage.isContainsAlcohol());
 			preparedStatement.setString(attributeCounter++, beverage.getBeverageType().toString());
 			int i = preparedStatement.executeUpdate();
@@ -74,7 +74,7 @@ public class BeverageRepository implements Dao<Beverage, String>{
 			preparedStatement.setString(attributeCounter++, beverage.getName());
 			preparedStatement.setString(attributeCounter++, beverage.getDescription());
 			preparedStatement.setBigDecimal(attributeCounter++, beverage.getPrice());
-			preparedStatement.setObject(attributeCounter++, beverage.getDateEdited());
+			preparedStatement.setObject(attributeCounter++, LocalDateTime.now());
 			preparedStatement.setBoolean(attributeCounter++, beverage.isDeprecated());
 			preparedStatement.setString(attributeCounter++, beverage.getName());
 			int i = preparedStatement.executeUpdate();
@@ -133,9 +133,8 @@ public class BeverageRepository implements Dao<Beverage, String>{
 			preparedStatement = connection.prepareStatement(queryString);
 			preparedStatement.setString(1, name);
 			resultSet = preparedStatement.executeQuery();
-			System.out.println("RS LENGTH: " + name );
 			if( resultSet.next() ){
-				beverage = new Beverage(resultSet.getString("name"),
+				beverage = new Beverage(name,
 										resultSet.getBigDecimal("price"),
 										resultSet.getInt("tax"),
 										resultSet.getString("description"),
@@ -144,8 +143,6 @@ public class BeverageRepository implements Dao<Beverage, String>{
 										resultSet.getBoolean("deprecated"),
 										BeverageType.valueOf(resultSet.getString("beverageType")),
 										resultSet.getBoolean("containsAlcohol"));
-
-				logger.info("FOUND:\n{}", beverage.toString());
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -177,18 +174,16 @@ public class BeverageRepository implements Dao<Beverage, String>{
 			preparedStatement = connection.prepareStatement(queryString);
 			resultSet = preparedStatement.executeQuery();
 			while (resultSet.next()) {
-				Beverage beverage = new Beverage(resultSet.getString("name"),
-						resultSet.getBigDecimal("price"),
-						resultSet.getInt("tax"),
-						resultSet.getString("description"),
-						resultSet.getObject("dateCreated", LocalDateTime.class),
-						resultSet.getObject("dateEdited", LocalDateTime.class),
-						resultSet.getBoolean("deprecated"),
-						BeverageType.valueOf(resultSet.getString("beverageType")),
-						resultSet.getBoolean("containsAlcohol"));
-				drinks.put(beverage.getName(), beverage);
-
-				logger.info(beverage.toString());
+				String name = resultSet.getString("name");
+				drinks.put(name, new Beverage(name,
+					resultSet.getBigDecimal("price"),
+					resultSet.getInt("tax"),
+					resultSet.getString("description"),
+					resultSet.getObject("dateCreated", LocalDateTime.class),
+					resultSet.getObject("dateEdited", LocalDateTime.class),
+					resultSet.getBoolean("deprecated"),
+					BeverageType.valueOf(resultSet.getString("beverageType")),
+					resultSet.getBoolean("containsAlcohol")));
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();

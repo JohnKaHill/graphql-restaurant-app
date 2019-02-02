@@ -6,7 +6,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.slf4j.Logger;
@@ -16,6 +18,7 @@ import de.pwc.digispace.javadevcourse.backend.entities.Beverage;
 import de.pwc.digispace.javadevcourse.backend.entities.Food;
 import de.pwc.digispace.javadevcourse.backend.entities.Order;
 import de.pwc.digispace.javadevcourse.backend.entities.PaymentMethod;
+import de.pwc.digispace.javadevcourse.backend.entities.Tax;
 
 public class OrderRepository implements Dao<Order, UUID>{
 	
@@ -35,16 +38,22 @@ public class OrderRepository implements Dao<Order, UUID>{
 		try {
 			String queryString = 
 					"INSERT INTO orders(orderId, dateCreated, tableNumber, "
-					+ "isOpen, datePaid, paymentMethod) VALUES(?,?,?,?,?,?,?)";
+					+ "isOpen, paymentMethod) VALUES(?,?,?,?,?)";
 			connection = getConnection();
 			preparedStatement = connection.prepareStatement(queryString);
-			preparedStatement.setObject(1, order.getOrderId());
-			preparedStatement.setObject(2, order.getDateCreated());
-			preparedStatement.setInt(3, order.getTableNumber());
-			preparedStatement.setBoolean(4, order.isOpen());
-			preparedStatement.setString(5, order.getPaymentMethod().toString());
+			int attributeCounter = 1;
+			preparedStatement.setObject(attributeCounter++, order.getOrderId());
+			preparedStatement.setObject(attributeCounter++, LocalDateTime.now());
+			preparedStatement.setInt(attributeCounter++, order.getTableNumber());
+			preparedStatement.setBoolean(attributeCounter++, true);
+			preparedStatement.setString(attributeCounter++, order.getPaymentMethod().toString());
 			int i = preparedStatement.executeUpdate();
-			logger.info("{} orders added successfully", i);
+
+			/* 
+				Add insertion of meals and drinks into helper tables
+			*/
+
+			logger.info("{} order added successfully", i);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		} finally {
@@ -65,14 +74,23 @@ public class OrderRepository implements Dao<Order, UUID>{
 	
 	public void update(Order order) {
 		try {
-			String queryString = "UPDATE orders SET tableNumber=?, "
-					+ "isOpen=? WHERE orderId=?";
+			String queryString = "UPDATE orders SET tableNumber=?, dateEdited=?, "
+					+ "isOpen=?, datePaid=?, totalAmount=? WHERE orderId=?";
 			connection = getConnection();
+			int attributeCounter = 1;
 			preparedStatement = connection.prepareStatement(queryString);
-			preparedStatement.setInt(1, order.getTableNumber());
-			preparedStatement.setBoolean(2, order.isOpen());
-			preparedStatement.setObject(3, order.getOrderId());
+			preparedStatement.setInt(attributeCounter++, order.getTableNumber());
+			preparedStatement.setObject(attributeCounter++, LocalDateTime.now());
+			preparedStatement.setBoolean(attributeCounter++, order.getIsOpen());
+			preparedStatement.setObject(attributeCounter++, order.getDatePaid());
+			preparedStatement.setBigDecimal(attributeCounter++, order.getTotalAmount());
+			preparedStatement.setObject(attributeCounter++, order.getOrderId());
 			int i = preparedStatement.executeUpdate();
+
+			/* 
+				Add insertion of meals and drinks into helper tables
+			*/
+
 			logger.info("{} orders UPDATED!", i);
 		} catch(SQLException e) {
 			e.printStackTrace();
@@ -121,21 +139,37 @@ public class OrderRepository implements Dao<Order, UUID>{
 	}
 	
 	public Order findById(UUID orderId) {
-		Order order = new Order(orderId);
+		Order order = null;
 		try {
-			String queryString = "SELECT FROM orders where orderId=?";
+			String queryString = "SELECT * FROM orders where orderId=?";
 			connection = getConnection();
 			preparedStatement = connection.prepareStatement(queryString);
 			preparedStatement.setObject(1, orderId);
 			resultSet = preparedStatement.executeQuery();
-			order.setDateCreated(LocalDateTime.parse(resultSet.getDate("dateCreated").toString()));
-			order.setDateEdited(LocalDateTime.parse(resultSet.getDate("dateEdited").toString()));
-			order.setTableNumber(resultSet.getInt("tableNumber"));
-			order.setOpen(resultSet.getBoolean("isOpen"));
-			order.setMeals(findFoodById(orderId));
-			order.setDrinks(findBeverageById(orderId));
-			order.setPaymentMethod((PaymentMethod) resultSet.getObject("paymentMethod"));
-			order.setDatePaid(LocalDateTime.parse(resultSet.getDate("datePaid").toString()));
+			if( resultSet.next() ) {
+				order = new Order( orderId,
+								resultSet.getObject("dateCreated", LocalDateTime.class),
+								resultSet.getObject("dateEdited", LocalDateTime.class),	
+								resultSet.getInt("tableNumber"),
+								resultSet.getBoolean("isOpen"),
+								resultSet.getObject("datePaid", LocalDateTime.class),
+
+								null,
+								null,
+								/* 
+									Add insertion of meals and drinks into helper tables
+								*/
+
+								PaymentMethod.valueOf(resultSet.getString("paymentMethod")),
+
+								null,
+								/* 
+									Add insertion of meals and drinks into helper tables
+								*/
+
+								resultSet.getBigDecimal("totalAmount"));
+			}
+			
 			String orderString = order.toString();
 			logger.info(orderString);
 		} catch (SQLException e) {
@@ -160,8 +194,8 @@ public class OrderRepository implements Dao<Order, UUID>{
 		return order;
 	}
 	
-	public List<Order> findAll() {
-		List<Order> orders = new ArrayList<>();
+	public Map<UUID, Order> findAll() {
+		Map<UUID, Order> orders = new HashMap<>();
 		try {
 			String queryString = "SELECT * FROM orders";
 			connection = getConnection();
@@ -169,16 +203,27 @@ public class OrderRepository implements Dao<Order, UUID>{
 			resultSet = preparedStatement.executeQuery();
 			while (resultSet.next()) {
 				UUID orderId = (UUID) resultSet.getObject("orderId");
-				Order order = new Order(orderId);
-				order.setDateCreated(LocalDateTime.parse(resultSet.getDate("dateCreated").toString()));
-				order.setDateEdited(LocalDateTime.parse(resultSet.getDate("dateEdited").toString()));
-				order.setTableNumber(resultSet.getInt("tableNumber"));
-				order.setOpen(resultSet.getBoolean("isOpen"));
-				order.setMeals(findFoodById(orderId));
-				order.setDrinks(findBeverageById(orderId));
-				order.setPaymentMethod((PaymentMethod) resultSet.getObject("paymentMethod"));
-				order.setDatePaid(LocalDateTime.parse(resultSet.getDate("datePaid").toString()));
-				orders.add(order);
+				orders.put( orderId, new Order( orderId,
+								resultSet.getObject("dateCreated", LocalDateTime.class),
+								resultSet.getObject("dateEdited", LocalDateTime.class),	
+								resultSet.getInt("tableNumber"),
+								resultSet.getBoolean("isOpen"),
+								resultSet.getObject("datePaid", LocalDateTime.class),
+
+								null,
+								null,
+								/* 
+									Add insertion of meals and drinks into helper tables
+								*/
+
+								PaymentMethod.valueOf(resultSet.getString("paymentMethod")),
+
+								null,
+								/* 
+									Add insertion of meals and drinks into helper tables
+								*/
+
+								resultSet.getBigDecimal("totalAmount")) );
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -249,7 +294,7 @@ public class OrderRepository implements Dao<Order, UUID>{
 			preparedStatement.setObject(1, orderID);
 			resultSet = preparedStatement.executeQuery();
 			while (resultSet.next()) {
-				meals.add(foodDAO.findById(resultSet.getString("name")));
+				meals.add(foodDAO.findById(resultSet.getString("name")) );
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -272,6 +317,43 @@ public class OrderRepository implements Dao<Order, UUID>{
 		}
 		
 		return meals;
+	}
+
+	public List<Tax> getTaxById(UUID orderId)
+	{
+		List<Tax> taxes = new ArrayList<>();
+		TaxRepository taxDAO = new TaxRepository();
+		
+		try {
+			String queryString = "SELECT * FROM ordertax WHERE orderId=?";
+			connection = getConnection();
+			preparedStatement = connection.prepareStatement(queryString);
+			preparedStatement.setObject(1, orderId);
+			resultSet = preparedStatement.executeQuery();
+			while (resultSet.next()) {
+				taxes.add( taxDAO.findById(resultSet.getString("taxId")) );
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (resultSet != null) {
+					resultSet.close();
+				}
+				if (preparedStatement != null) {
+					preparedStatement.close();
+				}
+				if (connection != null) {
+					connection.close();
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+		return taxes;
 	}
 		
 }

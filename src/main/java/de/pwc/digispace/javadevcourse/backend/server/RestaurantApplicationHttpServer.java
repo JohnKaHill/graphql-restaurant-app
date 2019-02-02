@@ -50,7 +50,6 @@ public class RestaurantApplicationHttpServer extends Thread{
 			}
 
 			String httpBody = getHttpBody( contentLength );
-			
 
 			HttpRouter httpRouter = new HttpRouter(connectedClient);
 			
@@ -64,7 +63,7 @@ public class RestaurantApplicationHttpServer extends Thread{
 		//Read HttpBody
 		StringBuilder httpBody = new StringBuilder();
 		try {
-			while ( in.ready() || httpBody.toString().length() < contentLength ) {
+			while ( in.ready() || httpBody.toString().getBytes("UTF-8").length < contentLength ) {
 				httpBody.append((char) in.read());
 			}
 			return httpBody.toString();
@@ -80,7 +79,6 @@ public class RestaurantApplicationHttpServer extends Thread{
 
 		Server dbServer = Server.createWebServer().start();
 		System.out.println("DB_URL: " + dbServer.getURL());
-		System.out.println("DB_PORT: " + dbServer.getPort());
 		
 		try (ServerSocket server = new ServerSocket(PORT_NUMBER, 10, InetAddress.getByName("127.0.0.1"))) {
 			LOGGER.info("TCP Server waiting for client on port {}", PORT_NUMBER);

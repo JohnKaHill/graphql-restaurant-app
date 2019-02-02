@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import de.pwc.digispace.javadevcourse.backend.BeverageRepository;
+import de.pwc.digispace.javadevcourse.backend.OrderRepository;
 import de.pwc.digispace.javadevcourse.resolver.Mutation;
 import de.pwc.digispace.javadevcourse.resolver.Query;
 import graphql.ExecutionInput;
@@ -25,6 +26,7 @@ public class GraphQLEndpoint{
 	public static final Logger LOGGER = LoggerFactory.getLogger(GraphQLEndpoint.class);
 	
 	private static final BeverageRepository BEVERAGE_REPOSITORY = new BeverageRepository();
+	private static final OrderRepository ORDER_REPOSITORY = new OrderRepository();
 
 
 	public GraphQLEndpoint() {
@@ -35,8 +37,10 @@ public class GraphQLEndpoint{
 		return SchemaParser.newParser()
 				.file("schema.graphqls")
 				.resolvers(
-						new Mutation( BEVERAGE_REPOSITORY ),
-						new Query( BEVERAGE_REPOSITORY ) )
+						new Mutation( BEVERAGE_REPOSITORY,
+									  ORDER_REPOSITORY ),
+						new Query( BEVERAGE_REPOSITORY,
+								   ORDER_REPOSITORY ) )
 				.build()
 				.makeExecutableSchema();
 	}
@@ -49,7 +53,7 @@ public class GraphQLEndpoint{
 				.newExecutionInput()
 				.query( getRequestFormat(requestBody) )
 				.build();
-
+		
 		ExecutionResult executionResult = graphQL
 				.execute(executionInput);
 
