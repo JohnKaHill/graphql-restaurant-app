@@ -1,45 +1,45 @@
-CREATE TABLE orders(
+CREATE TABLE IF NOT EXISTS orders(
 	orderId UUID PRIMARY KEY,
-	dateCreated LocalDateTime NOT NULL,
-	dateEdited LocalDateTime,
+	dateCreated TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+	dateEdited TIMESTAMP WITHOUT TIME ZONE,
 	tableNumber INT NOT NULL,
 	isOpen BOOLEAN NOT NULL,
 	paymentMethod VARCHAR(20),
-	datePaid LocalDateTime,
+	datePaid TIMESTAMP WITHOUT TIME ZONE,
 	totalAmount DECIMAL(20,2)
 );
 
-CREATE TABLE meals(
+CREATE TABLE IF NOT EXISTS meals(
 	name VARCHAR(50) PRIMARY KEY,
 	description VARCHAR(300),
 	price DECIMAL(20,2) NOT NULL,
 	tax INT NOT NULL,
-	dateCreated LocalDateTime NOT NULL,
-	dateEdited LocalDateTime,
+	dateCreated TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+	dateEdited TIMESTAMP WITHOUT TIME ZONE,
 	deprecated BOOLEAN,
 	containsMeat BOOLEAN NOT NULL,
 	foodType VARCHAR(30)
 );
 
-CREATE TABLE drinks(
+CREATE TABLE IF NOT EXISTS drinks(
 	name VARCHAR(50) PRIMARY KEY,
 	description VARCHAR(300),
 	price DECIMAL(20,2) NOT NULL,
 	tax INT NOT NULL,
-	dateCreated LocalDateTime NOT NULL,
-	dateEdited LocalDateTime,
+	dateCreated TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+	dateEdited TIMESTAMP WITHOUT TIME ZONE,
 	deprecated BOOLEAN,
-	containsAlcohol BOOLEAN NOT NULL
-	beverageType VARCHAR(20)
+	containsAlcohol BOOLEAN NOT NULL,
+	beverageType VARCHAR(30)
 );
 
-CREATE TABLE tax(
+CREATE TABLE IF NOT EXISTS tax(
 	taxId UUID PRIMARY KEY,
 	taxRate INT NOT NULL,
 	taxTotal DECIMAL(20,2) NOT NULL
 );
 
-CREATE TABLE orderfood(
+CREATE TABLE IF NOT EXISTS orderfood(
 	orderId UUID NOT NULL,
 	name VARCHAR(300) NOT NULL,
 	amountOrdered INT NOT NULL,
@@ -48,7 +48,7 @@ CREATE TABLE orderfood(
 	UNIQUE (orderId, name)
 );
 
-CREATE TABLE orderbeverage(
+CREATE TABLE IF NOT EXISTS orderbeverage(
 	orderId UUID NOT NULL,
 	name VARCHAR(300) NOT NULL,
 	amountOrdered INT NOT NULL,
@@ -57,10 +57,10 @@ CREATE TABLE orderbeverage(
 	UNIQUE (orderId, name)
 );
 
-CREATE TABLE ordertax(
+CREATE TABLE IF NOT EXISTS ordertax(
 	orderId UUID NOT NULL,
 	taxId UUID NOT NULL,
 	FOREIGN KEY (orderId) REFERENCES orders(orderId),
 	FOREIGN KEY (taxId) REFERENCES tax(taxId),
-	UNIQUE (orderId, tax)
+	UNIQUE (orderId, taxId)
 );

@@ -176,7 +176,7 @@ public class FoodRepository implements Dao<Food, String>{
 	public List<Food> findAll() {
 		List<Food> meals = new ArrayList<>();
 		try {
-			String queryString = "SELECT * FROM orders";
+			String queryString = "SELECT * FROM meals";
 			connection = getConnection();
 			preparedStatement = connection.prepareStatement(queryString);
 			resultSet = preparedStatement.executeQuery();

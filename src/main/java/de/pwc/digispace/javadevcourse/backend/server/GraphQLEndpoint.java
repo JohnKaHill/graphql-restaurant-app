@@ -10,7 +10,7 @@ import com.google.gson.reflect.TypeToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.pwc.digispace.javadevcourse.backend.ItemRepository;
+import de.pwc.digispace.javadevcourse.backend.BeverageRepository;
 import de.pwc.digispace.javadevcourse.resolver.Mutation;
 import de.pwc.digispace.javadevcourse.resolver.Query;
 import graphql.ExecutionInput;
@@ -24,7 +24,7 @@ public class GraphQLEndpoint{
 	
 	public static final Logger LOGGER = LoggerFactory.getLogger(GraphQLEndpoint.class);
 	
-	private static final ItemRepository itemRepository = new ItemRepository();
+	private static final BeverageRepository BEVERAGE_REPOSITORY = new BeverageRepository();
 
 
 	public GraphQLEndpoint() {
@@ -33,10 +33,10 @@ public class GraphQLEndpoint{
 	
 	private static GraphQLSchema buildSchema() {		
 		return SchemaParser.newParser()
-				.file("schemaTest.graphqls")
+				.file("schema.graphqls")
 				.resolvers(
-						new Mutation( itemRepository ),
-						new Query( itemRepository ) )
+						new Mutation( BEVERAGE_REPOSITORY ),
+						new Query( BEVERAGE_REPOSITORY ) )
 				.build()
 				.makeExecutableSchema();
 	}

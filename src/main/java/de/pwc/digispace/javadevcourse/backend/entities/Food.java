@@ -12,40 +12,44 @@ import java.math.BigDecimal;
 public class Food extends Product {
 		
 	private FoodType foodType;
-
 	private boolean containsMeat;
 
-	public Food() {
-		super();
-	}
-	
-	
-
-	public Food(String name, BigDecimal price, int tax, FoodType foodType, boolean containsMeat, String description) {
+	// Constructor for data fetching from database
+	public Food(String name, String description, BigDecimal price, int tax, 
+				FoodType foodType, boolean containsMeat) {
 		super(name, price, tax, description);
 		this.containsMeat = containsMeat;
 		this.foodType = foodType;
 	}
-	
-	public Food(String name, BigDecimal price, String description) {
-		super(name, description, price);
+
+	// Constructor for graphql mutation createBeverage
+	//	createBeverage(name: String!, description: String, price: Float!, 
+	//  tax: Int!, containsAlcohol: Boolean!, beverageType: BeverageType!): Beverage!
+
+	public Food(String name, String description, BigDecimal price, boolean containsMeat ) {
+		super(name, description, price, containsMeat);
 	}
+
+	// Constructor for graphql mutation updateBeverage
+	// 	updateBeverage(name: String!, description: String, price: Float, 
+	//  deprecated: Boolean): Beverage!
+
 
 	public FoodType getFoodType() {
 		return foodType;
 	}
 
-	public void setFoodType(FoodType foodType) {
-		this.foodType = foodType;
-	}
+	// public void setFoodType(FoodType foodType) {
+	// 	this.foodType = foodType;
+	// }
 
 	public boolean containsMeat() {
 		return containsMeat;
 	}
 
-	public void containsMeat(boolean containsMeat) {
-		this.containsMeat = containsMeat;
-	}	
+	// public void containsMeat(boolean containsMeat) {
+	// 	this.containsMeat = containsMeat;
+	// }	
 	
 	@Override
 	public boolean equals(Object o) {
@@ -62,18 +66,18 @@ public class Food extends Product {
 		return this.getName().hashCode();
 	}
 	
-	@Override
-	public String toString() {
-		return "Beverage{name= " + this.getName() + 
-				", price='" + this.getPrice() + '\'' + 
-				", tax='" + this.getTax() + '\'' + 
-				", containsAlcohol='" + this.containsMeat + '\'' + 
-				", beverageType='" + this.foodType  + '\'' + 
-				", createdDate='" + this.getDateCreated() + '\'' + 
-				", dateEdited='" + this.getDateEdited() + '\'' + 
-				", description='" + this.getDescription() +
-				'}';
-	}
+	// @Override
+	// public String toString() {
+	// 	return "Beverage{name= " + this.getName() + 
+	// 			", price='" + this.getPrice() + '\'' + 
+	// 			", tax='" + this.getTax() + '\'' + 
+	// 			", containsAlcohol='" + this.containsMeat + '\'' + 
+	// 			", beverageType='" + this.foodType  + '\'' + 
+	// 			", createdDate='" + this.getDateCreated() + '\'' + 
+	// 			", dateEdited='" + this.getDateEdited() + '\'' + 
+	// 			", description='" + this.getDescription() +
+	// 			'}';
+	// }
 	
 
 }

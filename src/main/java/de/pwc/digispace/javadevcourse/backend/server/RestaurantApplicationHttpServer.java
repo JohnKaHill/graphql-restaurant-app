@@ -7,6 +7,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.StringTokenizer;
 
+import org.h2.tools.Server;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,7 +20,6 @@ public class RestaurantApplicationHttpServer extends Thread{
 	BufferedReader in = null;
 	// character output for text
 
-	
 	public RestaurantApplicationHttpServer(Socket client) {
 		this.connectedClient = client;
 	}
@@ -76,6 +77,10 @@ public class RestaurantApplicationHttpServer extends Thread{
 	public static void main(String[] args) throws Exception{
 				
 		final int PORT_NUMBER = 4000;
+
+		Server dbServer = Server.createWebServer().start();
+		System.out.println("DB_URL: " + dbServer.getURL());
+		System.out.println("DB_PORT: " + dbServer.getPort());
 		
 		try (ServerSocket server = new ServerSocket(PORT_NUMBER, 10, InetAddress.getByName("127.0.0.1"))) {
 			LOGGER.info("TCP Server waiting for client on port {}", PORT_NUMBER);
@@ -97,6 +102,8 @@ public class RestaurantApplicationHttpServer extends Thread{
 			LOGGER.info("reached end of while-loop!");
 			
 		}
+
+		dbServer.stop();
 		
 	}
 	

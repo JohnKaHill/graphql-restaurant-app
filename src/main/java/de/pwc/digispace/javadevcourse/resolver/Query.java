@@ -6,27 +6,24 @@ import java.util.Map;
 
 import com.coxautodev.graphql.tools.GraphQLQueryResolver;
 
-import de.pwc.digispace.javadevcourse.backend.ItemRepository;
-import de.pwc.digispace.javadevcourse.backend.entities.Item;
+import de.pwc.digispace.javadevcourse.backend.BeverageRepository;
+import de.pwc.digispace.javadevcourse.backend.entities.Beverage;
 
 public class Query implements GraphQLQueryResolver{
 	
-	private ItemRepository itemRepository;
+    private BeverageRepository beverageRepository;
 
-	public Query(ItemRepository itemRepository) {
-		this.itemRepository = itemRepository;
+	public Query(BeverageRepository beverageRepository) {
+		this.beverageRepository = beverageRepository;
 	}
 	
-	public List<Item> allItems() {
-		Map<String, Item> items = itemRepository.getItems();
-		return new ArrayList(items.values());
+	public List<Beverage> findAllDrinks() {
+		Map<String, Beverage> beverages = beverageRepository.findAll();
+		return new ArrayList(beverages.values());
 	}
 	
-	public Item item(String name) {
-		return itemRepository.getItems().values().stream()
-					.filter( item -> item.getName().equals(name))
-					.findFirst()
-					.orElseGet(null);
+	public Beverage beverage(String name) {
+		return beverageRepository.findById(name);
 	}
 
 }

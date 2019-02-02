@@ -31,6 +31,4 @@ public class SuperItem{
         return description;
     }
 
-    
-
 }

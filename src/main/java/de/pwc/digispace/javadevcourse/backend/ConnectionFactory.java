@@ -7,9 +7,9 @@ import java.sql.SQLException;
 public class ConnectionFactory {
 
 	static final String JDBC_DRIVER = "org.h2.Driver";
-	static final String DB_URL = "jdbc:h2:~/.h2/restaurant";
+	static final String DB_URL = "jdbc:h2:~/.h2/restaurant;INIT=runscript from '~/Dokumente/repos/restaurant-graphql-app/src/main/resources/schema.sql'";
 	static final String USER = "sa";
-	static final String PASS = "sa";
+	static final String PASS = "";
 	
 	private static ConnectionFactory connectionFactory = null;
 	

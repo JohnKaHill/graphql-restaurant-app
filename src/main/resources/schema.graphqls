@@ -1,111 +1,27 @@
 type Query {
-	# Find all orders
-	findAllOrders: [Order]!
-	# Find order by id
-	findOrderById(orderId: Id!): Order!
-	# Find all meals
-	findAllMeals: [Food]!
-	# Find meal by name
-	findFoodByName(name: String!): Food!
 	# Find all drinks
 	findAllDrinks: [Beverage]!
 	# Find beverage by name
-	findBeverageByName(name: String!): Beverage!
+	beverage(name: String!): Beverage!
 }
 
 # root mutation type that needs to extended
 type Mutation {
-	createOrder(tableNumber: Int!, drinks: [Beverage!], meals: [Food!]) : Order!
-	updateOrder(id: Id!, drinks: [Beverage!], meals: [Food!], paymentMethod: paymentMethod, isOpen: Boolean) : Order!
-	deleteOrder(id: Id!) : Boolean!
-	createUser(name: String!, role: Role!): User!
-	updateUser(name: String!, role: Role!): User!
-	deleteUser(id: Id!, password): Boolean!
-	createFood(name: String!, description: String, price: Float!, tax: Int!, containsMeat: Boolean!, foodType: FoodType!): Food!
-	updateFood(name: String!, description: String, price: Float): Food!
-	deleteFood(name: String!): Boolean!
-	createBeverage(name: String!, description: String, price: Float!, tax: Int!, containsAlcohol: Boolean!, beverageType: BeverageType!): Beverage!
-	updateBeverage(name: String!, description: String, price: Float, deprecated: Boolean): Beverage!
-	deleteBeverage(name: String!): Beverage!
-}
-
-type Tax {
-	taxId: Id!
-	taxRate: Int!
-	taxTotal: Float!
-}
-
-type Order {
-	orderId: Id!
-	dateCreated: String
-	dateEdited: String
-	tableNumber: Int!
-	isOpen: Boolean!
-	meals: [Beverage!]!
-	drinks: [Food!]!
-	datePaid: String
-	paymentMethod: PaymentMethod
-	totalAmount: Float
-	taxes: [Tax!]
-}
-
-enum PaymentMethod {
-	CASH
-	DEBIT
-	VISA
-	MASTERCARD
-	AMERICANEXPRESS
-	SODEXO
-	BITCOIN
-	ETHEREUM
-	CHECK
-	APPLEPAY
-	GOOGLEPAY
-}
-
-
-type User {
-	id: Id!
-	name: String!
-	password: String!
-	createdAt: String!
-	updatedAt: String
-	role: Role!
-}
-
-enum Role {
-	admin
-	manager
-	waiter
-}
-
-type Food {
-	name: String!
-	description: String!
-	price: Float!
-	tax: Int!
-	dateCreated: String!
-	dateEdited: String
-	foodType: FoodType!
-	containsMeat: Boolean!
-}
-
-enum FoodType {
-	STARTER
-	MAIN_COURSE
-	DESSERT
+	createBeverage(input: ProductInput!, beverageType: BeverageType!, containsAlcohol: Boolean!): Beverage
+	updateBeverage(input: ProductInput): Beverage
+	deleteBeverage(name: String!): Boolean
 }
 
 type Beverage {
 	name: String!
-	description: String!
 	price: Float!
 	tax: Int!
+	description: String!
 	dateCreated: String!
 	dateEdited: String
+	deprecated: Boolean
 	containsAlcohol: Boolean!
 	beverageType: BeverageType!
-	deprecated: Boolean
 }
 
 enum BeverageType {
@@ -113,4 +29,13 @@ enum BeverageType {
 	COCKTAIL
 	WINE
 	LIQUOR
+	SOFTDRINK
+	WATER
+}
+
+input ProductInput{
+	name: String!
+	price: Float
+	tax: Int
+	description: String
 }

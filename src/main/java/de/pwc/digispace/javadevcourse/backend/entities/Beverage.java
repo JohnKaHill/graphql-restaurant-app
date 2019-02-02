@@ -1,6 +1,7 @@
 package de.pwc.digispace.javadevcourse.backend.entities;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 /**
  * 
@@ -15,36 +16,39 @@ public class Beverage extends Product {
 	
 	private boolean containsAlcohol;
 
-	public Beverage() {
-		super();
-	}
-
-	public Beverage(String name, BigDecimal price, int tax, BeverageType beverageType, 
-					boolean containsAlcohol, String description) {
-		super(name, price, tax, description);
+	// Constructor for fetching from the database
+	public Beverage( String name, BigDecimal price, int tax, String description,
+					LocalDateTime dateCreated, LocalDateTime dateEdited, 
+					Boolean deprecated, BeverageType beverageType,
+					boolean containsAlcohol) {
+		super(name, price, tax, description, dateCreated, dateEdited, deprecated);
 		this.containsAlcohol = containsAlcohol;
 		this.beverageType = beverageType;
 	}
 
-	public Beverage(String name, BigDecimal price, boolean deprecated, String description) {
-		super(name, description, deprecated, price);
+	// Constructor for graphql mutation createBeverage/createFood
+	public Beverage(String name, BigDecimal price, int tax, String description,
+					BeverageType beverageType, Boolean containsAlcohol) {
+		super(name, price, tax, description);
+		this.beverageType = beverageType;
+		this.containsAlcohol = containsAlcohol;
 	}
 
 	public BeverageType getBeverageType() {
 		return beverageType;
 	}
 
-	public void setBeverageType(BeverageType beverageType) {
-		this.beverageType = beverageType;
-	}
+	// public void setBeverageType(BeverageType beverageType) {
+	// 	this.beverageType = beverageType;
+	// }
 
-	public boolean containsAlcohol() {
+	public boolean isContainsAlcohol() {
 		return containsAlcohol;
 	}
 
-	public void containsAlcohol(boolean containsAlcohol) {
-		this.containsAlcohol = containsAlcohol;
-	}
+	// public void containsAlcohol(boolean containsAlcohol) {
+	// 	this.containsAlcohol = containsAlcohol;
+	// }
 	
 	@Override
 	public boolean equals(Object o) {
@@ -66,7 +70,7 @@ public class Beverage extends Product {
 		return "Beverage{name= " + this.getName() + 
 				", price='" + this.getPrice() + '\'' + 
 				", tax='" + this.getTax() + '\'' + 
-				", containsAlcohol='" + this.containsAlcohol() + '\'' + 
+				", containsAlcohol='" + this.isContainsAlcohol() + '\'' + 
 				", beverageType='" + this.getBeverageType()  + '\'' + 
 				", createdDate='" + this.getDateCreated() + '\'' + 
 				", dateEdited='" + this.getDateEdited() + '\'' + 
