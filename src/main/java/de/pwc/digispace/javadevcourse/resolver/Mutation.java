@@ -49,7 +49,7 @@ public class Mutation implements GraphQLMutationResolver {
 
         orderRepository.update( new Order(orderId, tableNumber, oldOrder.getIsOpen(),
             oldOrder.getMeals(), oldOrder.getDrinks(), oldOrder.getPaymentMethod(),
-            oldOrder.getTaxes() ));
+            oldOrder.getTax() ));
         
         return orderRepository.findById(orderId);
     }
@@ -106,6 +106,12 @@ public class Mutation implements GraphQLMutationResolver {
     public Boolean deleteBeverage( String name )
     {
         return beverageRepository.delete(name);
+    }
+
+    public Order addBeverageToOrder( UUID orderId, String name, int amount)
+    {
+        orderRepository.addBeverageToOrder(orderId, name, amount);
+        return orderRepository.findById(orderId);
     }
     
 }

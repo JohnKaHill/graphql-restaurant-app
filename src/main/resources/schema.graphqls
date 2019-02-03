@@ -18,6 +18,8 @@ type Mutation {
 	createBeverage(input: ProductInput!, beverageType: BeverageType!, containsAlcohol: Boolean!): Beverage
 	updateBeverage(input: ProductInput): Beverage
 	deleteBeverage(name: String!): Boolean
+
+	addBeverageToOrder(orderId: String!, name: String!, amount: Int!): Order
 }
 
 type Beverage {
@@ -39,13 +41,15 @@ type Order {
 	tableNumber: Int!
 	datePaid: String
 	paymentMethod: PaymentMethod
+	drinks: [Beverage!]
+	tax: [Tax!]
 	totalAmount: Float
 }
 
 type Tax {
 	taxId: String!
 	taxRate: Int!
-	taxAmonut: Float!
+	taxTotal: Float!
 }
 
 enum PaymentMethod {

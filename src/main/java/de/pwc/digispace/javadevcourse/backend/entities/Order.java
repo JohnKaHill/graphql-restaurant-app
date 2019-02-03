@@ -102,39 +102,46 @@ public class Order {
 		if( drinks != null )
 		{
 			for (Beverage beverage : this.drinks) {
-				totalTemp += beverage.getPrice().floatValue();
+				totalTemp += beverage.getPrice().floatValue() * beverage.getAmountOrdered();
 			}
 		}
 		if( meals != null )
 		{
 			for (Food food : this.meals) {
-				totalTemp += food.getPrice().floatValue();
+				totalTemp += food.getPrice().floatValue() * food.getAmountOrdered();
 			}
 		}
 		
 		return BigDecimal.valueOf(totalTemp);
 	}
 
-	public List<Tax> getTaxes() {
+	public List<Tax> getTax() {
 		return taxes;
 	}
 
 	public List<Tax> setTaxes( List<Food> meals, List<Beverage> drinks ) {
 		Map<Integer, BigDecimal> taxMap = new HashMap<>();
-		for (Beverage beverage : drinks) {
-			BigDecimal tempTax = taxMap.containsKey(beverage.getTax()) ? 
-				taxMap.get(beverage.getTax()).add(beverage.getPrice()) : taxMap.get(beverage.getTax());
-			taxMap.put(beverage.getTax(), tempTax);
+		if( drinks != null )
+		{
+			for (Beverage beverage : drinks) {
+				BigDecimal tempTax = taxMap.containsKey(beverage.getTax()) ? 
+					taxMap.get(beverage.getTax()).add(beverage.getPrice()) : taxMap.get(beverage.getTax());
+				taxMap.put(beverage.getTax(), tempTax);
+			}
 		}
-				
-		for (Food food : meals) {
-			BigDecimal tempTax = taxMap.containsKey(food.getTax()) ? 
-				taxMap.get(food.getTax()).add(food.getPrice()) : taxMap.get(food.getTax());
-			taxMap.put(food.getTax(), tempTax);
-		}
+		
+		if( meals != null )
+		{
+			for (Food food : meals) {
+				BigDecimal tempTax = taxMap.containsKey(food.getTax()) ? 
+					taxMap.get(food.getTax()).add(food.getPrice()) : taxMap.get(food.getTax());
+				taxMap.put(food.getTax(), tempTax);
+			}
+		}		
+		
 		List<Tax> taxes = new ArrayList<>();
 		for (Map.Entry<Integer, BigDecimal> entry : taxMap.entrySet()) {
-			taxes.add(new Tax(entry.getKey(), entry.getValue()));
+			taxes.add(new Tax(UUID.randomUUID(), entry.getKey(), entry.getValue()));
 		}
 		return taxes;
 	}

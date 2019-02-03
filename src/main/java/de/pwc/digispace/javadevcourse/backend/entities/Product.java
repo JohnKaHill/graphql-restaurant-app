@@ -61,5 +61,4 @@ public class Product {
 	public boolean isDeprecated() {
 		return deprecated;
 	}
-
 }

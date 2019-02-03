@@ -25,8 +25,6 @@ public class OrderRepository implements Dao<Order, UUID>{
 	public final Logger logger = LoggerFactory.getLogger(OrderRepository.class);
 
 	Connection connection = null;
-	PreparedStatement preparedStatement = null;
-	ResultSet resultSet = null;
 	
 	public OrderRepository() {}
 	
@@ -35,6 +33,8 @@ public class OrderRepository implements Dao<Order, UUID>{
 	}
 	
 	public void add( Order order ) {
+		PreparedStatement preparedStatement = null;
+	
 		try {
 			String queryString = 
 					"INSERT INTO orders(orderId, dateCreated, tableNumber, "
@@ -73,6 +73,8 @@ public class OrderRepository implements Dao<Order, UUID>{
 	}
 	
 	public void update(Order order) {
+		PreparedStatement preparedStatement = null;
+	
 		try {
 			String queryString = "UPDATE orders SET tableNumber=?, dateEdited=?, "
 					+ "isOpen=?, datePaid=?, totalAmount=? WHERE orderId=?";
@@ -111,6 +113,8 @@ public class OrderRepository implements Dao<Order, UUID>{
 	}
 	
 	public boolean delete(UUID orderId) {
+		PreparedStatement preparedStatement = null;
+	
 		int i = 0;
 		try {
 			String queryString = "DELETE FROM orders WHERE orderid=?";
@@ -139,6 +143,9 @@ public class OrderRepository implements Dao<Order, UUID>{
 	}
 	
 	public Order findById(UUID orderId) {
+		PreparedStatement preparedStatement = null;
+		ResultSet resultSet = null;
+	
 		Order order = null;
 		try {
 			String queryString = "SELECT * FROM orders where orderId=?";
@@ -155,7 +162,7 @@ public class OrderRepository implements Dao<Order, UUID>{
 								resultSet.getObject("datePaid", LocalDateTime.class),
 
 								null,
-								null,
+								findDrinksById(orderId),
 								/* 
 									Add insertion of meals and drinks into helper tables
 								*/
@@ -195,6 +202,9 @@ public class OrderRepository implements Dao<Order, UUID>{
 	}
 	
 	public Map<UUID, Order> findAll() {
+		PreparedStatement preparedStatement = null;
+		ResultSet resultSet = null;
+
 		Map<UUID, Order> orders = new HashMap<>();
 		try {
 			String queryString = "SELECT * FROM orders";
@@ -211,7 +221,7 @@ public class OrderRepository implements Dao<Order, UUID>{
 								resultSet.getObject("datePaid", LocalDateTime.class),
 
 								null,
-								null,
+								findDrinksById(orderId),
 								/* 
 									Add insertion of meals and drinks into helper tables
 								*/
@@ -246,14 +256,62 @@ public class OrderRepository implements Dao<Order, UUID>{
 		}
 		return orders;
 	}
+
+	public void addBeverageToOrder( UUID orderId, String name, int amountOrdered )
+	{
+		PreparedStatement preparedStatement = null;
 	
-	public List<Beverage> findBeverageById(UUID orderID) {
+		try {
+			String queryString = 
+					"INSERT INTO orderbeverage(orderId, name, amountOrdered) "
+					+ "VALUES(?,?,?)";
+			connection = getConnection();
+			preparedStatement = connection.prepareStatement(queryString);
+			int attributeCounter = 1;
+			// add Beverage(s) to order
+			preparedStatement.setObject(attributeCounter++, orderId);
+			preparedStatement.setString(attributeCounter++, name);
+			preparedStatement.setInt(attributeCounter++, amountOrdered);
+			int i = preparedStatement.executeUpdate();
+
+			// set taxes for order according to added beverages and meals
+			List<Beverage> drinks = findDrinksById(orderId);
+			// List<Food> meals = findFoodById(orderId);
+			Order order = findById(orderId);
+			order.setTaxes(null, drinks);
+			update(order);
+
+			// persist taxes to database
+			/** TODO: add batch saving instead for every single object */
+			for( Tax tax : order.getTax() ) { addTaxToOrder(orderId, tax.getTaxId()); }
+
+			logger.info("{} beverages added to order successfully", amountOrdered);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (preparedStatement != null) {
+					preparedStatement.close();
+				}
+				if (connection != null) {
+					connection.close();
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	private List<Beverage> findDrinksById(UUID orderID) {
 		List<Beverage> drinks = new ArrayList<>();
 		BeverageRepository beverageDAO = new BeverageRepository();
-		
+		PreparedStatement preparedStatement = null;
+		ResultSet resultSet = null;	
+
 		try {
 			String queryString = "SELECT * FROM orderbeverage WHERE orderId=?";
-			connection = getConnection();
 			preparedStatement = connection.prepareStatement(queryString);
 			preparedStatement.setObject(1, orderID);
 			resultSet = preparedStatement.executeQuery();
@@ -270,9 +328,6 @@ public class OrderRepository implements Dao<Order, UUID>{
 				if (preparedStatement != null) {
 					preparedStatement.close();
 				}
-				if (connection != null) {
-					connection.close();
-				}
 			} catch (SQLException e) {
 				e.printStackTrace();
 			} catch (Exception e) {
@@ -282,11 +337,44 @@ public class OrderRepository implements Dao<Order, UUID>{
 		
 		return drinks;
 	}
+
+	private void addFoodToOrder( UUID orderId, String name, int amountOrdered )
+	{
+		PreparedStatement preparedStatement = null;
 	
-	public List<Food> findFoodById(UUID orderID) {
+		try {
+			String queryString = 
+					"INSERT INTO orderfood(orderId, name, amountOrdered) "
+					+ "VALUES(?,?,?)";
+			connection = getConnection();
+			preparedStatement = connection.prepareStatement(queryString);
+			int attributeCounter = 1;
+			preparedStatement.setObject(attributeCounter++, orderId);
+			preparedStatement.setString(attributeCounter++, name);
+			preparedStatement.setInt(attributeCounter++, amountOrdered);
+
+			logger.info("{} meals added to order successfully", amountOrdered);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (preparedStatement != null) {
+					preparedStatement.close();
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	private List<Food> findMealsById(UUID orderID) {
 		List<Food> meals = new ArrayList<>();
 		FoodRepository foodDAO = new FoodRepository();
-		
+		PreparedStatement preparedStatement = null;
+		ResultSet resultSet = null;	
+
 		try {
 			String queryString = "SELECT * FROM orderfood WHERE orderId=?";
 			connection = getConnection();
@@ -306,8 +394,36 @@ public class OrderRepository implements Dao<Order, UUID>{
 				if (preparedStatement != null) {
 					preparedStatement.close();
 				}
-				if (connection != null) {
-					connection.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		return meals;
+	}
+
+	public void addTaxToOrder( UUID orderId, UUID taxId )
+	{
+		PreparedStatement preparedStatement = null;
+	
+		try {
+			String queryString = 
+					"INSERT INTO ordertax(orderId, taxId) VALUES(?,?)";
+			connection = getConnection();
+			preparedStatement = connection.prepareStatement(queryString);
+			int attributeCounter = 1;
+			preparedStatement.setObject(attributeCounter++, orderId);
+			preparedStatement.setObject(attributeCounter++, taxId);
+			int i = preparedStatement.executeUpdate();
+
+			logger.info("tax added to order successfully");
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (preparedStatement != null) {
+					preparedStatement.close();
 				}
 			} catch (SQLException e) {
 				e.printStackTrace();
@@ -315,12 +431,12 @@ public class OrderRepository implements Dao<Order, UUID>{
 				e.printStackTrace();
 			}
 		}
-		
-		return meals;
 	}
 
-	public List<Tax> getTaxById(UUID orderId)
+	private List<Tax> findTaxById(UUID orderId)
 	{
+		PreparedStatement preparedStatement = null;
+		ResultSet resultSet = null;	
 		List<Tax> taxes = new ArrayList<>();
 		TaxRepository taxDAO = new TaxRepository();
 		
@@ -331,7 +447,7 @@ public class OrderRepository implements Dao<Order, UUID>{
 			preparedStatement.setObject(1, orderId);
 			resultSet = preparedStatement.executeQuery();
 			while (resultSet.next()) {
-				taxes.add( taxDAO.findById(resultSet.getString("taxId")) );
+				taxes.add( taxDAO.findById((UUID) resultSet.getObject("taxId")) );
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -342,9 +458,6 @@ public class OrderRepository implements Dao<Order, UUID>{
 				}
 				if (preparedStatement != null) {
 					preparedStatement.close();
-				}
-				if (connection != null) {
-					connection.close();
 				}
 			} catch (SQLException e) {
 				e.printStackTrace();
