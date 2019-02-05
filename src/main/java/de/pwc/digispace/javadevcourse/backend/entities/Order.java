@@ -45,7 +45,7 @@ public class Order {
 		this.meals = meals;
 		this.drinks = drinks;
 		this.paymentMethod = paymentMethod;
-		this.taxes = taxes;
+		this.taxes = setTaxes(meals, drinks);
 		this.totalAmount = setTotalAmount(meals, drinks);
 
 	}
@@ -97,22 +97,22 @@ public class Order {
 		return totalAmount;
 	}
 
-	public BigDecimal setTotalAmount( List<Food> meals, List<Beverage> drinks ) {
-		float totalTemp = 0;
+	private BigDecimal setTotalAmount( List<Food> meals, List<Beverage> drinks ) {
+		BigDecimal totalTemp = BigDecimal.ZERO;
 		if( drinks != null )
 		{
 			for (Beverage beverage : this.drinks) {
-				totalTemp += beverage.getPrice().floatValue() * beverage.getAmountOrdered();
+				totalTemp = totalTemp.add( beverage.getPrice().multiply(BigDecimal.valueOf(beverage.getAmountOrdered())) );
 			}
 		}
 		if( meals != null )
 		{
 			for (Food food : this.meals) {
-				totalTemp += food.getPrice().floatValue() * food.getAmountOrdered();
+				totalTemp = totalTemp.add( food.getPrice().multiply(BigDecimal.valueOf(food.getAmountOrdered())) );
 			}
 		}
 		
-		return BigDecimal.valueOf(totalTemp);
+		return totalTemp;
 	}
 
 	public List<Tax> getTax() {
@@ -125,7 +125,7 @@ public class Order {
 		{
 			for (Beverage beverage : drinks) {
 				BigDecimal tempTax = taxMap.containsKey(beverage.getTax()) ? 
-					taxMap.get(beverage.getTax()).add(beverage.getPrice()) : taxMap.get(beverage.getTax());
+					taxMap.get(beverage.getTax()).add(beverage.getPrice()) : new BigDecimal(Integer.toString(beverage.getTax()));
 				taxMap.put(beverage.getTax(), tempTax);
 			}
 		}
@@ -134,7 +134,7 @@ public class Order {
 		{
 			for (Food food : meals) {
 				BigDecimal tempTax = taxMap.containsKey(food.getTax()) ? 
-					taxMap.get(food.getTax()).add(food.getPrice()) : taxMap.get(food.getTax());
+					taxMap.get(food.getTax()).add(food.getPrice()) : new BigDecimal(Integer.toString(food.getTax()));
 				taxMap.put(food.getTax(), tempTax);
 			}
 		}		

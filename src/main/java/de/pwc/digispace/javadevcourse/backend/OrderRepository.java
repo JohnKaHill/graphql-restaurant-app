@@ -50,8 +50,9 @@ public class OrderRepository implements Dao<Order, UUID>{
 			int i = preparedStatement.executeUpdate();
 
 			/* 
-				Add insertion of meals and drinks into helper tables
+				Add insertion of meals, drinks and taxes into helper tables
 			*/
+			addTaxToOrder(order.getOrderId(), order.getTax());
 
 			logger.info("{} order added successfully", i);
 		} catch (SQLException e) {
@@ -164,16 +165,11 @@ public class OrderRepository implements Dao<Order, UUID>{
 								null,
 								findDrinksById(orderId),
 								/* 
-									Add insertion of meals and drinks into helper tables
+									Add insertion of meals into helper tables
 								*/
 
 								PaymentMethod.valueOf(resultSet.getString("paymentMethod")),
-
-								null,
-								/* 
-									Add insertion of meals and drinks into helper tables
-								*/
-
+								findTaxById(orderId),
 								resultSet.getBigDecimal("totalAmount"));
 			}
 			
@@ -211,6 +207,7 @@ public class OrderRepository implements Dao<Order, UUID>{
 			connection = getConnection();
 			preparedStatement = connection.prepareStatement(queryString);
 			resultSet = preparedStatement.executeQuery();
+
 			while (resultSet.next()) {
 				UUID orderId = (UUID) resultSet.getObject("orderId");
 				orders.put( orderId, new Order( orderId,
@@ -223,18 +220,14 @@ public class OrderRepository implements Dao<Order, UUID>{
 								null,
 								findDrinksById(orderId),
 								/* 
-									Add insertion of meals and drinks into helper tables
+									Add insertion of meals into helper tables
 								*/
 
 								PaymentMethod.valueOf(resultSet.getString("paymentMethod")),
-
-								null,
-								/* 
-									Add insertion of meals and drinks into helper tables
-								*/
-
+								findTaxById(orderId),
 								resultSet.getBigDecimal("totalAmount")) );
 			}
+
 		} catch (SQLException e) {
 			e.printStackTrace();
 		} finally {
@@ -259,20 +252,25 @@ public class OrderRepository implements Dao<Order, UUID>{
 
 	public void addBeverageToOrder( UUID orderId, String name, int amountOrdered )
 	{
+		BeverageRepository beverageRepository = new BeverageRepository();
 		PreparedStatement preparedStatement = null;
-	
 		try {
-			String queryString = 
-					"INSERT INTO orderbeverage(orderId, name, amountOrdered) "
-					+ "VALUES(?,?,?)";
 			connection = getConnection();
+			String queryString = "";
+			int oldAmountOrdered = beverageRepository.findById(name).getAmountOrdered();
+			if( oldAmountOrdered > 0 ) {
+				queryString = "UPDATE orderbeverage SET amountOrdered=? WHERE orderId=? AND name=?";
+				amountOrdered += oldAmountOrdered;
+			} else {
+				queryString = "INSERT INTO orderbeverage(amountOrdered, orderId, name) VALUES(?,?,?)";
+			}
 			preparedStatement = connection.prepareStatement(queryString);
 			int attributeCounter = 1;
 			// add Beverage(s) to order
+			preparedStatement.setInt(attributeCounter++, amountOrdered);
 			preparedStatement.setObject(attributeCounter++, orderId);
 			preparedStatement.setString(attributeCounter++, name);
-			preparedStatement.setInt(attributeCounter++, amountOrdered);
-			int i = preparedStatement.executeUpdate();
+			preparedStatement.executeUpdate();
 
 			// set taxes for order according to added beverages and meals
 			List<Beverage> drinks = findDrinksById(orderId);
@@ -282,10 +280,9 @@ public class OrderRepository implements Dao<Order, UUID>{
 			update(order);
 
 			// persist taxes to database
-			/** TODO: add batch saving instead for every single object */
-			for( Tax tax : order.getTax() ) { addTaxToOrder(orderId, tax.getTaxId()); }
+			addTaxToOrder(orderId, order.getTax()); 
 
-			logger.info("{} beverages added to order successfully", amountOrdered);
+			logger.info("{} beverages added to order successfully", amountOrdered);	
 		} catch (SQLException e) {
 			e.printStackTrace();
 		} finally {
@@ -304,19 +301,20 @@ public class OrderRepository implements Dao<Order, UUID>{
 		}
 	}
 	
-	private List<Beverage> findDrinksById(UUID orderID) {
+	private List<Beverage> findDrinksById(UUID orderId) {
 		List<Beverage> drinks = new ArrayList<>();
 		BeverageRepository beverageDAO = new BeverageRepository();
 		PreparedStatement preparedStatement = null;
 		ResultSet resultSet = null;	
-
 		try {
 			String queryString = "SELECT * FROM orderbeverage WHERE orderId=?";
 			preparedStatement = connection.prepareStatement(queryString);
-			preparedStatement.setObject(1, orderID);
+			preparedStatement.setObject(1, orderId);
 			resultSet = preparedStatement.executeQuery();
 			while (resultSet.next()) {
-				drinks.add(beverageDAO.findById(resultSet.getString("name")));
+				Beverage beverage = beverageDAO.findById(resultSet.getString("name"));
+				beverage.setAmountOrdered(resultSet.getInt("amountOrdered"));
+				drinks.add(beverage);
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -369,7 +367,7 @@ public class OrderRepository implements Dao<Order, UUID>{
 		}
 	}
 	
-	private List<Food> findMealsById(UUID orderID) {
+	private List<Food> findMealsById( UUID orderId ) {
 		List<Food> meals = new ArrayList<>();
 		FoodRepository foodDAO = new FoodRepository();
 		PreparedStatement preparedStatement = null;
@@ -379,7 +377,7 @@ public class OrderRepository implements Dao<Order, UUID>{
 			String queryString = "SELECT * FROM orderfood WHERE orderId=?";
 			connection = getConnection();
 			preparedStatement = connection.prepareStatement(queryString);
-			preparedStatement.setObject(1, orderID);
+			preparedStatement.setObject(1, orderId);
 			resultSet = preparedStatement.executeQuery();
 			while (resultSet.next()) {
 				meals.add(foodDAO.findById(resultSet.getString("name")) );
@@ -403,7 +401,7 @@ public class OrderRepository implements Dao<Order, UUID>{
 		return meals;
 	}
 
-	public void addTaxToOrder( UUID orderId, UUID taxId )
+	private void addTaxToOrder( UUID orderId, List<Tax> taxes )
 	{
 		PreparedStatement preparedStatement = null;
 	
@@ -412,12 +410,12 @@ public class OrderRepository implements Dao<Order, UUID>{
 					"INSERT INTO ordertax(orderId, taxId) VALUES(?,?)";
 			connection = getConnection();
 			preparedStatement = connection.prepareStatement(queryString);
-			int attributeCounter = 1;
-			preparedStatement.setObject(attributeCounter++, orderId);
-			preparedStatement.setObject(attributeCounter++, taxId);
-			int i = preparedStatement.executeUpdate();
-
-			logger.info("tax added to order successfully");
+			for( Tax tax : taxes ){
+				int attributeCounter = 1;
+				preparedStatement.setObject(attributeCounter++, orderId);
+				preparedStatement.setObject(attributeCounter++, tax.getTaxId());
+				preparedStatement.executeUpdate();
+			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		} finally {

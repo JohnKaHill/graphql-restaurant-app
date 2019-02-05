@@ -40,7 +40,6 @@ public class RestaurantApplicationHttpServer extends Thread{
 			int contentLength = 0;
 			
 			//Read HttpHeader
-			int headerCounter = 0;
 			while( in.ready() && !(requestString = in.readLine()).isEmpty() ) {
 				if ( requestString.contains("Content-Type" )) {
 					contentType = requestString.replace("Content-Type: ", "");

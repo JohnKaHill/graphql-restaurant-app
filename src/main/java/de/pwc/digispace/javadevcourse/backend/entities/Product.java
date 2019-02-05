@@ -20,6 +20,7 @@ public class Product {
 	private LocalDateTime dateCreated;
 	private LocalDateTime dateEdited;
 	private boolean deprecated;
+	private int amountOrdered;
 
 	// Constructor for fetching from the database
 	public Product( String name, BigDecimal price, int tax, String description,
@@ -60,5 +61,13 @@ public class Product {
 	
 	public boolean isDeprecated() {
 		return deprecated;
+	}
+
+	public int getAmountOrdered() {
+		return amountOrdered;
+	}
+
+	public void setAmountOrdered(int amountOrdered) {
+		this.amountOrdered = amountOrdered;
 	}
 }
