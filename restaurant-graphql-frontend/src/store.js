@@ -1,132 +1,64 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
+import axios from 'axios'
 
-
-Vue.use(Vuex)
+Vue.use(Vuex, axios)
 
 export default new Vuex.Store({
   state: {
-    orders: [
-      {
-        orderId: "001",
-        dateCreated: "2019-01-01 12:45",
-        dateEdited: null,
-        tableNumber: 1,
-        isOpen: false,
-        meals: [
-          {
-            name: "Pasta",
-            description: "From Italy",
-            price: 9.99,
-            tax: 10,
-            dateCreated: "2019-01-01 12:45",
-            dateEdited: "2019-01-01 12:45",
-            deprecated: false,
-            foodType: "main_course",
-            containsMeat: false
-          },
-          {
-            name: "Pasito",
-            description: "From Spain",
-            price: 19.99,
-            tax: 10,
-            dateCreated: "2019-01-01 13:45",
-            dateEdited: null,
-            deprecated: false,
-            foodType: "main_course",
-            containsMeat: false
-          }
-        ],
-        drinks: [
-          {
-            name: "Coke",
-            description: "From USA",
-            price: 1.99,
-            tax: 19,
-            dateCreated: "2019-01-01 13:45",
-            dateEdited: null,
-            deprecated: false,
-            beverageTyp: "softdrink",
-            containsAlcohol: false
-          },
-          {
-            name: "Veltins",
-            description: "From Germany",
-            price: 2.99,
-            tax: 7,
-            dateCreated: "2019-01-01 13:45",
-            dateEdited: null,
-            deprecated: false,
-            beverageTyp: "beer",
-            containsAlcohol: true
-          }
-        ],
-        datePaid: null,
-        paymentMethod: null
-      },
-      {
-        orderId: "002",
-        dateCreated: "2019-12-01 12:45",
-        dateEdited: null,
-        tableNumber: 2,
-        isOpen: true,
-        meals: [
-          {
-            name: "Pasta2",
-            description: "From Italy2",
-            price: 9.99,
-            tax: 10,
-            dateCreated: "2019-12-01 12:45",
-            dateEdited: "2019-12-01 12:45",
-            deprecated: false,
-            foodType: "main_course",
-            containsMeat: false
-          },
-          {
-            name: "Pasito2",
-            description: "From Spain2",
-            price: 199.99,
-            tax: 12,
-            dateCreated: "2019-12-01 13:45",
-            dateEdited: null,
-            deprecated: false,
-            foodType: "main_course",
-            containsMeat: false
-          }
-        ],
-        drinks: [
-          {
-            name: "Coke2",
-            description: "From USA2",
-            price: 1.99,
-            tax: 19,
-            dateCreated: "2019-12-01 13:45",
-            dateEdited: null,
-            deprecated: false,
-            beverageTyp: "softdrink",
-            containsAlcohol: false
-          },
-          {
-            name: "Veltins2",
-            description: "From Germany2",
-            price: 2.99,
-            tax: 7,
-            dateCreated: "2019-12-01 13:45",
-            dateEdited: null,
-            deprecated: false,
-            beverageTyp: "beer",
-            containsAlcohol: true
-          }
-        ],
-        datePaid: null,
-        paymentMethod: null
-      }
-    ]
+    orders: [],
+    message: ['Hello Peter',
+              'Restaurant Mark',
+              'Karl!',
+              'Jimmy',
+              'Jonnie']
   },
   mutations: {
-
+    SET_ORDERS (state, orders)  {
+      state.orders = orders
+    },
+    SET_MESSAGE (state, message) {
+      state.message = message
+    }
   },
   actions: {
+    setMessage(state, message) {
+      state.dispatch('SET_MESSAGE', message);
+    },
+    findAllOrders () {
+      // eslint-disable-next-line
+      console.log("Orders:1 ")
+      axios
+        .post('localhost:4000/graphql', {
+          query : `
+            query{
+              findAllOrders{
+                orderId
+                dateCreated
+                dateEdited
+                tableNumber
+                datePaid
+                paymentMethod
+                totalAmount
+                drinks{
+                  name
+                  price
+                }
+              }
+            }
+          `
+        })
+        .then( orders => {
+          // eslint-disable-next-line
+          console.log("Orders: ")
+          this.commit('SET_ORDERS', orders.data)
+
+        })
+        .catch( error => {
+          // eslint-disable-next-line
+          console.log(error);
+        })      
+    },
 
   }
 })

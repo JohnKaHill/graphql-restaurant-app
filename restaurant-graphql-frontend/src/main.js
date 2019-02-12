@@ -7,20 +7,18 @@ import App from './App.vue'
 // Vue.use(MdLayout)
 // Vue.use(MdMenu)
 
-import VueMaterial from 'vue-material'
-import 'vue-material/dist/vue-material.min.css'
+// import VueMaterial from 'vue-material'
+// import 'vue-material/dist/vue-material.min.css'
 
-Vue.use(VueMaterial)
+// Vue.use(VueMaterial)
 
 import router from './router'
 import store from './store'
-import { createProvider } from './vue-apollo'
 
 Vue.config.productionTip = false
 
 new Vue({
   router,
   store,
-  apolloProvider: createProvider(),
   render: h => h(App)
 }).$mount('#app')

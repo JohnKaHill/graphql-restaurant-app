@@ -17,7 +17,6 @@
 <script>
 // @ is an alias to /src
 import Orders from '@/components/Orders.vue'
-import OrderHeader from '@/components/OrderHeader.vue'
 
 export default {
   name: 'overview',
@@ -25,14 +24,8 @@ export default {
       filterOption: 'All'
   }),
   components: {
-    Orders,
-    OrderHeader
+    Orders
   }
-  // beforeCreate() {
-  //   this.$store.
-    // this.$store.dispatch('fetchOrder', 001);
-    // this.$store.dispatch('fetchOrders');
-  // },
 }
 </script>
 
