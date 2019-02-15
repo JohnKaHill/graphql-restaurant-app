@@ -1,5 +1,7 @@
 import Vue from 'vue'
 import App from './App.vue'
+import vSelect from 'vue-select'
+Vue.component('v-select', vSelect)
 // import { MdField, MdLayout, MdMenu } from 'vue-material/dist/components'
 // import 'vue-material/dist/vue-material.min.css'
 //

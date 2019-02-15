@@ -1,44 +1,26 @@
 <template>
   <div class="orders">
     <ul>
-      <li v-for="m in filterMessage" :key="m">{{ m }}</li>
+      <li v-for="m in filteredMessages" :key="m">{{ m }}</li>
     </ul>
   </div>
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapGetters } from 'vuex';
 
 export default {
+  
   name: "Orders",
-  props: {
-    filterOption: {
-      type: String,
-      default: "All"
-    }
-  },
-  created () {
-    this.$store.dispatch('findAllOrders')
-  },
   computed: {
-    ...mapState([
-      'orders',
-      'message'
-    ]),
-    filterMessage (filterOption) {
-      if (filterOption === "Active") {
-        return message.filter( item =>  
-           item.includes('J')
-        );
-      } else if(filterOption === "Closed") {
-        return message.filter( item =>  
-           item.includes('J')
-        );
-      } else {
-        return message
-      }
+    ...mapGetters(['filteredMessages', 'filteredOrders'])
+  },
+  data () {
+    return {
+      orders: this.$store.state.orders,
     }
   }
+  
 }
 </script>
 

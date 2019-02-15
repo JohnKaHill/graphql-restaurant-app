@@ -2,15 +2,15 @@
   <div class="overview">
     <div class="orderList">
       Show
-      <select v-model="filterOption">
-        <option value="Active">Active</option>
-        <option value="Closed">Closed</option>
-        <option value="All">All</option>
-      </select>
+      <v-select
+        @input="setFilterOption"
+        :options="this.$store.state.filterOptions"
+        :value="this.$store.state.selectedFilterOption"
+      ></v-select>
       orders.
     </div>
     <br>
-    <Orders v-bind:filterOption="filterOption"/>
+    <Orders/>
   </div>
 </template>
 
@@ -20,9 +20,11 @@ import Orders from '@/components/Orders.vue'
 
 export default {
   name: 'overview',
-  data: () => ({
-      filterOption: 'All'
-  }),
+  methods: {
+    setFilterOption(val) {
+      this.$store.dispatch('setFilterOption', val)
+    }
+  },
   components: {
     Orders
   }

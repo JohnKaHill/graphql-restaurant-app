@@ -1,4 +1,4 @@
-# restaurant-graphql-frontend
+# restaurant-frontend
 
 ## Project setup
 ```
