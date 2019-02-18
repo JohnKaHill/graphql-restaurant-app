@@ -1,0 +1,23 @@
+type Query {
+	findItemByName(name: String!): Item
+	allItems: [Item!] 
+}
+
+type Mutation {
+	createItem(input: CreateItemInput): Item
+	updateItem(input: CreateItemInput): Item
+}
+
+type Item {
+	itemId: String
+	name: String!
+	price: Float!
+	superItemId: String
+	description: String
+}
+
+input CreateItemInput {
+	name: String!
+	price: Float
+	description: String
+}

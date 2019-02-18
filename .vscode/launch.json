@@ -1,0 +1,11 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "CodeLens (Launch) - RestaurantApplicationHttpServer",
+            "request": "launch",
+            "mainClass": "de.pwc.digispace.javadevcourse.backend.server.RestaurantApplicationHttpServer",
+            "projectName": "restaurant-graphql-app"
+        }
+    ]
+}
